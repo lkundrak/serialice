@@ -166,7 +166,10 @@ function enable_gx_lpc_bars()
 
 	pci_cfg32_hook(dev_power, 0x84, "LPC", lpc_io_bar)
 	pci_cfg32_hook(dev_power, 0x88, "LPC", lpc_io_bar)
-	pci_cfg32_hook(dev_power, 0x8c, "LPC", lpc_io_bar)
+	-- The GPIO range 0x1680-0x169f is forwarded to DLPC via this DRR.
+	-- We want our own hook for that range so that we can mask out D_PLTRST
+	-- toggle, ignore it here.
+	pci_cfg32_hook(dev_power, 0x8c, "LPC", lpc_protect_serial_port)
 	pci_cfg32_hook(dev_power, 0x90, "LPC", lpc_io_bar)
 end
 
