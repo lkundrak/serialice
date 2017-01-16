@@ -94,6 +94,10 @@ static int serialice_read(SerialICEState * state, void *buf, size_t nbyte)
         if (ret == -1) {
             return -1;
         }
+
+        if (ret == 0) {
+            break;
+        }
 #endif
 
         bytes_read += ret;
@@ -119,6 +123,7 @@ static int serialice_write(SerialICEState * state, const void *buf,
     for (i = 0; i < (int)nbyte; i++) {
         int ret = 0;
         c = 0;
+resend:
 #ifdef WIN32
         if (!WriteFile(state->fd, buffer + i, 1, &ret, NULL))
             return -1;
@@ -135,7 +140,10 @@ static int serialice_write(SerialICEState * state, const void *buf,
                 return -1;
             }
         }
+reread:
         while ((ret = read(state->fd, &c, 1)) != 1) {
+            if (ret == 0)
+                goto resend;
             if (ret == -1 && errno == EINTR)
                 continue;
 
@@ -146,6 +154,7 @@ static int serialice_write(SerialICEState * state, const void *buf,
 #endif
         if (c != buffer[i] && !handshake_mode) {
             printf("Readback error! %x/%x\n", c, buffer[i]);
+            goto reread;
         }
     }
 
@@ -187,6 +196,8 @@ static int serialice_wait_prompt(void)
     int l;
 
     l = serialice_read(s, buf, 3);
+    if (l == 0)
+        return -1;
 
     if (l == -1) {
         perror("SerialICE: Could not read from target");
@@ -197,6 +208,8 @@ static int serialice_wait_prompt(void)
         buf[0] = buf[1];
         buf[1] = buf[2];
         l = serialice_read(s, buf + 2, 1);
+        if (l == 0)
+            return -1;
         if (l == -1) {
             perror("SerialICE: Could not read from target");
             exit(1);
@@ -204,6 +217,36 @@ static int serialice_wait_prompt(void)
     }
 
     return 0;
+}
+
+static void rst(void)
+{
+    handshake_mode = 1;         // Readback errors are to be expected in this phase.
+
+retry:
+    printf("SerialICE: Waiting for handshake with target... ");
+    /* Trigger a prompt */
+    serialice_write(s, "@", 1);
+
+    switch (serialice_wait_prompt()) {
+    case 0:
+        /* ... and wait for it to appear */
+        printf("target alive!\n");
+        break;
+    case -1:
+        /* timed out */
+        goto retry;
+    default:
+        printf("target not ok!\n");
+        exit(1);
+    }
+
+    /* Each serialice_command() waits for a prompt, so trigger one for the
+     * first command, as we consumed the last one for the handshake
+     */
+    serialice_write(s, "@", 1);
+
+    handshake_mode = 0;         // from now on, warn about readback errors.
 }
 
 const SerialICE_target *serialice_serial_init(void)
@@ -287,27 +330,9 @@ const SerialICE_target *serialice_serial_init(void)
         printf("Out of memory.\n");
         exit(1);
     }
-    printf("SerialICE: Waiting for handshake with target... ");
 
-    handshake_mode = 1;         // Readback errors are to be expected in this phase.
+    rst ();
 
-    /* Trigger a prompt */
-    serialice_write(s, "@", 1);
-
-    /* ... and wait for it to appear */
-    if (serialice_wait_prompt() == 0) {
-        printf("target alive!\n");
-    } else {
-        printf("target not ok!\n");
-        exit(1);
-    }
-
-    /* Each serialice_command() waits for a prompt, so trigger one for the
-     * first command, as we consumed the last one for the handshake
-     */
-    serialice_write(s, "@", 1);
-
-    handshake_mode = 0;         // from now on, warn about readback errors.
     return &serialice_protocol;
 }
 
