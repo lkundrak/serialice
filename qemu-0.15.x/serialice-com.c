@@ -116,9 +116,9 @@ static int serialice_write(SerialICEState * state, const void *buf,
     int i;
 
     for (i = 0; i < (int)nbyte; i++) {
+        int ret = 0;
         c = 0;
 #ifdef WIN32
-        int ret = 0;
         if (!WriteFile(state->fd, buffer + i, 1, &ret, NULL))
             return -1;
 
