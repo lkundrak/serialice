@@ -84,6 +84,8 @@ else
 
 include $(src)/.config
 
+EC-$(CONFIG_HAVE_BOARD_EC_FIRMWARE) = $(obj)/ec.o
+
 TARGET-$(CONFIG_BUILD_ROMCC) = $(obj)/serialice.rom
 TARGET-$(CONFIG_BUILD_XMMSTACK)  = $(obj)/serialice-gcc.rom
 all: $(TARGET-y)
@@ -114,9 +116,9 @@ $(obj)/serialice.rom: $(obj)/serialice.elf
 	$(Q)printf "  OBJCOPY  $(subst $(shell pwd)/,,$(@))\n"
 	$(Q)$(OBJCOPY) -O binary $< $@
 
-$(obj)/serialice.elf: $(obj)/serialice.o $(obj)/start.o $(src)/serialice.ld
+$(obj)/serialice.elf: $(obj)/serialice.o $(obj)/start.o $(src)/serialice.ld $(EC-y)
 	$(Q)printf "  LINK     $(subst $(shell pwd)/,,$(@))\n"
-	$(Q)$(CC) $(LDFLAGS) -o $@ $(obj)/serialice.o $(obj)/start.o
+	$(Q)$(CC) $(LDFLAGS) -o $@ $(obj)/serialice.o $(obj)/start.o $(EC-y)
 	$(Q)$(NM) $@ | sort -u > $(obj)/serialice.map
 
 $(obj)/serialice.S: $(SOURCES) $(obj)/romcc
@@ -158,6 +160,10 @@ $(obj)/serialice-gcc.S: $(obj)/serialice-pre.s
 $(obj)/xmmstack: $(src)/util/xmmstack.c
 	$(Q)printf "  HOSTCC   $(subst $(shell pwd)/,,$(@))\n"
 	$(Q)$(HOSTCC) $(HOSTCFLAGS) $(PCREFLAGS) -o $@ $^
+
+$(obj)/ec.o: $(subst ",,$(CONFIG_BOARD_EC_FIRMWARE))
+	$(Q)printf "  OBJCOPY  $(subst $(shell pwd)/,,$(@))\n"
+	$(Q)$(OBJCOPY) -O binary -S --rename-section .data=.ec -I binary -O elf32-i386 -B i386 $< $@
 
 # #####################################################################
 

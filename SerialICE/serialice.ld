@@ -26,11 +26,13 @@ _ROMSIZE = (1024 * 64);
 _ROMBASE = 0x100000000 - (_ROMSIZE);
 
 SECTIONS {
-
 	. = ALIGNED_ROMBASE;
+	.ec . : {
+		*(.ec)
+	}
 
+	. = 0x100000000 - _ROMSIZE;
 	.rom : {
-		. = ALIGNED_ROMSIZE - _ROMSIZE;
 		_main = . ;
 		*(.rom.text);
 		*(.text);

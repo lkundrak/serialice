@@ -82,6 +82,15 @@ config BOARD_DELL_S1850
 config BOARD_HP_DL165_G6
 	bool "HP DL165 G6"
 
+config BOARD_HP_MINI_2133
+	bool "HP Mini-Note 2133"
+	select HAVE_BOARD_EC_FIRMWARE
+	help
+	  The machine requires EC firmware in the first 64K of the SPI
+          flash memory. Extract it from the factory BIOS dump with:
+
+	  dd if=68VGU.BIN bs=1k count=64 of=ec.bin
+
 config BOARD_INTEL_D845GBV2
 	bool "Intel D845GBV2"
 
@@ -142,6 +151,14 @@ config BOARD_LENOVO_X60
 
 endchoice
 
+config HAVE_BOARD_EC_FIRMWARE
+	bool
+
+config BOARD_EC_FIRMWARE
+	string "Embedded Controller firmware dump file"
+	depends on HAVE_BOARD_EC_FIRMWARE
+	default "ec.bin"
+
 config BOARD_INIT
 	string
 	default "qemu-x86.c" if BOARD_QEMU_X86
@@ -166,6 +183,7 @@ config BOARD_INIT
 	default "tyan_s2895.c" if BOARD_TYAN_S2895
 	default "tyan_s2912.c" if BOARD_TYAN_S2912
 	default "hp_dl165_g6.c" if BOARD_HP_DL165_G6
+	default "hp_mini_2133.c" if BOARD_HP_MINI_2133
 	default "wyse_s50.c" if BOARD_WYSE_S50
 	default "asrock_p4i65gv.c" if BOARD_ASROCK_P4I65GV
 	default "asus_p4p800-vm.c" if BOARD_ASUS_P4P800_VM
@@ -191,6 +209,7 @@ config SUPERIO_INIT
 
 choice
 	prompt "ROM size"
+	default ROM_1024K if BOARD_HP_MINI_2133
 	default ROM_64K
 
 config ROM_64K
@@ -291,6 +310,7 @@ config SERIAL_PORT
 
 choice
 	prompt "Serial console speed"
+	default SERIAL_NO_INIT if BOARD_HP_MINI_2133
 	default SERIAL_115200
 	depends on SERIAL
 
