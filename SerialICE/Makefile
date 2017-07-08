@@ -183,3 +183,7 @@ $(obj)/%.o: $(obj)/%.S
 
 dongle: $(TARGET-y)
 	dongle.py -v -c /dev/cu.usbserial-00* $(TARGET-y) EOF
+
+# XXXXXXX
+program: $(TARGET-y)
+	minipro -p SST25VF080B -w $<
