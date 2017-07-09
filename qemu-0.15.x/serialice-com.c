@@ -111,8 +111,8 @@ static int serialice_read(SerialICEState * state, void *buf, size_t nbyte)
 static int serialice_write(SerialICEState * state, const void *buf,
                            size_t nbyte)
 {
-    char *buffer = (char *)buf;
-    char c;
+    unsigned char *buffer = (unsigned char *)buf;
+    unsigned char c;
     int i;
 
     for (i = 0; i < (int)nbyte; i++) {
