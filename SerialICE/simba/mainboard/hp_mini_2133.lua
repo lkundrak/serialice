@@ -65,6 +65,7 @@ filter_mainboard = {
 	size = 0x10000
 }
 
+load_filter("vx800_regs")
 load_filter("ddr2_spd")
 load_filter("via_bars")
 

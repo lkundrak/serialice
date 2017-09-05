@@ -150,10 +150,15 @@ function pci_cfg_print(f, action, bdfr)
 		dir_str = "<="
 	end
 
-	printk(f, action, "%x:%02x.%x [%03x] %s %s\n",
+	local reg = ""
+	if pci_regs ~= nil and pci_regs[bdfr] ~= nil then
+		reg = reg .. ' "' .. pci_regs[bdfr] .. '"'
+	end
+
+	printk(f, action, "%x:%02x.%x [%03x] %s %s%s\n",
 		(0xff & (bdfr >> 20)), (0x1f & (bdfr >> 15)),
 		(0x7 & (bdfr >> 12)), (0xfff & bdfr),
-		dir_str, size_data(action.size, action.data))
+		dir_str, size_data(action.size, action.data), reg)
 end
 
 function pci_cfg_access(f, action)
