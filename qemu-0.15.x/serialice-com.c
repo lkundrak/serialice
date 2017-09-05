@@ -107,6 +107,7 @@ static int serialice_read(SerialICEState * state, void *buf, size_t nbyte)
     return bytes_read;
 }
 
+#define ECHO_MODE
 #ifdef ECHO_MODE
 static int serialice_write(SerialICEState * state, const void *buf,
                            size_t nbyte)
