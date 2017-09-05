@@ -151,8 +151,8 @@ local function dump_transaction(f, action)
 		data1 = string.format("%02x", f.host.wr_data1)
 	end
 
-
-	local dump = string.format("%02x %s ", f.host.slave >> 1, proto_name[f.host.proto])
+	local slave = f.host.slave >> 1
+	local dump = string.format("%02x %s ", slave, proto_name[f.host.proto])
 
 	if host_proto(f, SMBUS_QUICK) then
 
@@ -161,6 +161,11 @@ local function dump_transaction(f, action)
 
 	elseif host_proto(f, SMBUS_BYTE_DATA) then
 		dump = dump .. string.format("%02x %s %s", f.host.cmd, dir, data0)
+		if slave >= 0x50 and slave <= 0x54 then
+			if spd_byte ~= nil and spd_byte[f.host.cmd] ~= nil then
+				dump = dump .. ' "' .. spd_byte[f.host.cmd] .. '"'
+			end
+		end
 
 	elseif host_proto(f, SMBUS_WORD_DATA) then
 		dump = dump .. string.format("%02x %s %s%s", f.host.cmd, dir, data0, data1)
