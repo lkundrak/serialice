@@ -329,6 +329,13 @@ config SERIAL_9600
 	help
 	  Set serial port speed to 9600 bps.
 
+config SERIAL_NO_INIT
+	bool "Not not initialize serial baud rate"
+	help
+	  Do not set serial port speed.
+
+	  Leave at whatever the serial port hardware defaults to.
+
 endchoice
 
 config SERIAL_BAUDRATE
@@ -340,6 +347,7 @@ config SERIAL_BAUDRATE
 	default 38400 if SERIAL_38400
 	default 19200 if SERIAL_19200
 	default 9600 if SERIAL_9600
+	default 0 if SERIAL_NO_INIT
 
 
 menu "Debugging setup"

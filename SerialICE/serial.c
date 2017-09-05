@@ -39,6 +39,7 @@
 
 static void sio_init(void)
 {
+#ifndef SIO_SPEED == 0
 #if SIO_SPEED > 115200
 	/* "high speed" serial requires special chip setup
 	 * (to be done in superio_init), and special divisor
@@ -58,6 +59,7 @@ static void sio_init(void)
 	outb(divisor & 0xff, SIO_PORT + UART_DLL);
 	outb((divisor >> 8) & 0xff, SIO_PORT + UART_DLM);
 	outb(lcs, SIO_PORT + UART_LCR);
+#endif
 }
 
 static void sio_putc(u8 data)
